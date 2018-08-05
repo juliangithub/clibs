@@ -1,2 +1,2 @@
 # clibs
-c lib
+C library
