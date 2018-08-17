@@ -11,7 +11,7 @@
 ================================================================*/
 #ifndef _DLOG_H
 #define _DLOG_H
-#if 0
+#if 1
 #define NONE                 "\e[0m"
 #define BLACK                "\e[0;30m"
 #define L_BLACK              "\e[1;30m"
@@ -67,7 +67,7 @@
 #define ENDL                 "\e[0m\n"
 
 
-//#define DLOG_EN
+#define DLOG_EN
 
 #define dlog_warn(format, ...)   printf(HEAD DISPLAY_BLINK COLOR_BG_NONE COLOR_FT_YELLOW"Warning(%s %d )"format ENDL, __FILE__, __LINE__,##__VA_ARGS__)
 #define dlog_err(format, ...)   printf(HEAD DISPLAY_BLINK COLOR_BG_NONE COLOR_FT_RED"Error(%s %d )"format ENDL, __FILE__, __LINE__,##__VA_ARGS__)
