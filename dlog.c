@@ -45,8 +45,8 @@ usage(char const *argv0)
 			"   -p CPE port    -- Set upgrade push forward device's webserver port.\n"
 			"   -a auth string -- Set the authentication.\n"
 			"   -c             -- upgrade device Configuration .\n"
-			"curl_upgrade_push Version %s %s [%s %s], \nCopyright (C) 2016-2025 Skyworth Software Inc.\n"
-			"http://www.skyworth.com\n", VERSION, _REVISION, __DATE__, __TIME__);
+			"demo Version %s %s [%s %s], \nCopyright (C) 2016-2025 cqping  Inc.\n"
+			"http://www.cqping.xyz\n", VERSION, _REVISION, __DATE__, __TIME__);
 	exit(EXIT_SUCCESS);
 }
 
