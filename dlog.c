@@ -9,24 +9,24 @@
  *	release notes：
  *
  ================================================================*/
-//#include<stdio.h>
-//#include<unistd.h>
-//#include<string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <dirent.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <getopt.h>
+#include <arpa/inet.h>
+
 #include "dlog.h"
 #include "version.h"
 #include "common.h"
-//\e[display;font-color;backgroud-color	m	string  \e[0m
 
-void print_hex(unsigned char*buf, size_t len)
-{
-	int i =0;
-	unsigned char *cousor = buf;
-	for(i=0; i<len ;cousor++, i++)
-	{
-		printf("i:%d %x \t %x\n ",i,  cousor, *cousor);
-	}
-
-}
 
 void
 usage(char const *argv0)
@@ -45,14 +45,16 @@ usage(char const *argv0)
 			"   -p CPE port    -- Set upgrade push forward device's webserver port.\n"
 			"   -a auth string -- Set the authentication.\n"
 			"   -c             -- upgrade device Configuration .\n"
-			"demo Version %s %s [%s %s], \nCopyright (C) 2016-2025 cqping  Inc.\n"
-			"http://www.cqping.xyz\n", VERSION, _REVISION, __DATE__, __TIME__);
+			"%s Version %s[%s %s], \nCopyright (C) 2016-2025 cqping  Inc.\n"
+			"git commit id : %s\n"
+			"http://www.cqping.xyz\n", argv0, VERSION, __DATE__, __TIME__, REVISION);
 	exit(EXIT_SUCCESS);
 }
 
 void print_styles()
 {
 
+		char buf[]= "1234567890abcdefg";
 		printf("[%s %d]" HEAD DISPLAY_BLINK COLOR_BG_NONE COLOR_FT_YELLOW  "print color %s" ENDL, __FILE__, __LINE__, buf);
 		printf("[%s %d]" HEAD DISPLAY_BLINK COLOR_BG_NONE COLOR_FT_RED	"print color %s" ENDL, __FILE__, __LINE__, buf);
 		printf("[%s %d]" HEAD DISPLAY_DEF COLOR_BG_NONE COLOR_FT_GREEN	"print color %s" ENDL, __FILE__, __LINE__, buf);
@@ -100,38 +102,93 @@ void print_styles()
 		
 }
 
-int main(int argc, char *argv[])
+void delog_demo()
 {
-	char buf[32]="buf1buf2";
-	int sk_hostuniq[3]={0x0};
-	int num = 123;
+	char buf[]= "1234567890abcdefg";
+	int num = 99168;
 	int *p_int = &num;
-	unsigned long long llnum = 1234567898765432123;
-
-	char* const options = "Vhcr:i:d:I:a:p:";
-		while((c = getopt (argc, argv, options)) != -1) {
-		switch (c) {
-			case 'V':
-				printf("Skyworth Curl upgrade push tool Version: %s%lu [%s %s]\n", VERSION, (long unsigned int) REVISION, __DATE__, __TIME__);
-				exit(EXIT_SUCCESS);
-						default:
-				usage(argv[0]);
-		}
-	}
 
 	dlog_warn("buf:%s \t num %d", buf, num);
 	dlog_err("buf:%s \t num %d", buf, num);
 	dlog_trace();
 	dlog_debug("buf:%s \t num %d", buf, num);
 	dlog_info("buf:%s \t num %d sizeof int :%zu sizeof piont int :%zu ", buf, num, sizeof(int), sizeof(p_int));
-	printf("%llu \t  %llx sizeof sk_hostuniq: %zu\n", llnum, llnum, sizeof(sk_hostuniq));
-	sk_hostuniq[0] += 16;
-	sk_hostuniq[2] += 32;
-	
-	printf("sk_hostuniq: %x  %d\n", sk_hostuniq, *sk_hostuniq);
-	unsigned char pkt[12]={0x0};
-	memcpy(pkt, sk_hostuniq, sizeof(pkt));
-	print_hex(pkt, sizeof(pkt));
+
+}
+
+#define IP_LEN 24
+#define	MAX_PATH_LEN	256
+
+static int interval = 10;
+static int upgrade_config = 0;
+static char authentication[128] = "admin:admin";
+static char cpe_ipaddr[IP_LEN] = "192.168.88.254";
+static char directory[MAX_PATH_LEN] = "./";
+static int retransfer = 10;
+
+int main(int argc, char *argv[])
+{
+	int ret = 0;
+	int c = 0;
+	char* const options = "Vhcr:i:d:I:a:p:";
+		while((c = getopt (argc, argv, options)) != -1) {
+		switch (c) {
+			case 'V':
+				printf("Version: %s %s [%s %s]\n", VERSION, REVISION, __DATE__, __TIME__);
+				exit(EXIT_SUCCESS);
+			case 'h':
+				usage(argv[0]);
+				exit(EXIT_SUCCESS);
+			case 'r':
+				if (sscanf(optarg, "%d", &retransfer) != 1) {
+					fprintf(stderr, "Illegal argument to -r: Should be -r nums\n");
+					exit(EXIT_FAILURE);
+				}
+				printf("%d\n", retransfer);
+				break;
+			case 'I':
+				if (sscanf(optarg, "%d", &interval) != 1) {
+					fprintf(stderr, "Illegal argument to -I: Should be -I nums(seconds)\n");
+					exit(EXIT_FAILURE);
+				}
+				break;
+			case 'd':
+				/* dir permission check*/
+				snprintf(directory, sizeof(directory), "%s", optarg);
+				if(access(directory, R_OK) < 0) {
+					fprintf(stderr, "directory %s permission check Filed!\n", directory);
+					exit(EXIT_FAILURE);
+				}
+				break;
+			case 'i':
+				/*device cpe ip check*/
+				snprintf(cpe_ipaddr, sizeof(cpe_ipaddr), "%s", optarg);
+				struct sockaddr_in sa;
+				ret = inet_pton(AF_INET, cpe_ipaddr, &(sa.sin_addr));
+				if(ret == 0) {
+					fprintf(stderr, "Illegal argument to -i: Should be -i IP\n");
+					exit(EXIT_FAILURE);
+				}
+				dlog_debug("cpe_ipaddr: %s \n ", cpe_ipaddr);
+				break;
+			case 'a':
+				/*authentication*/
+				snprintf(authentication, sizeof(authentication), "%s", optarg);
+				if(strchr(authentication, ':') == NULL) {
+					fprintf(stderr, "Illegal argument to -a: Should be -a username:password\n");
+					exit(EXIT_FAILURE);
+				}
+				break;
+			case 'c':
+				/*upgrade Configuration*/
+				upgrade_config = 1;
+				printf("upgrade_config Enabled: %d \n", upgrade_config);
+				break;
+			default:
+				usage(argv[0]);
+		}
+	}
+
 	
 	return 0 ;
 }

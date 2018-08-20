@@ -13,5 +13,5 @@
 #define _VERSION_H
    
 #define VERSION "1.0.0.0"   
-#define _REVISION ""REVISION""
+//#define _REVISION REVISION
 #endif //VERSION_H
