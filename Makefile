@@ -31,9 +31,9 @@ OBJS=$(patsubst %.c, %.o, $(SRC))
 .PHONY: $(TARGET)
 
 $(TARGET) : $(OBJS)
-	echo $(REVISION)
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
-	echo " -> Compiling ok."
+	@echo " $(TARGET)-> Compiling ok."
+	@echo "reversion: $(REVISION) "
 
 
 clean:
